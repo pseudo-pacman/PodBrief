@@ -1,0 +1,36 @@
+{
+  "name": "podbrief-server",
+  "version": "1.0.0",
+  "description": "Backend server for PodBrief - AI-powered podcast brief generator",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "init-db": "node scripts/init-db.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "openai": "^4.20.1",
+    "puppeteer": "^24.11.2",
+    "sqlite3": "^5.1.6",
+    "youtube-transcript-api": "^3.0.6",
+    "yt-transcript": "^0.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "podcast",
+    "ai",
+    "brief",
+    "express",
+    "sqlite"
+  ],
+  "author": "PodBrief Team",
+  "license": "MIT"
+}

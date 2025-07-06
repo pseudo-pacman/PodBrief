@@ -1,0 +1,20 @@
+{
+  "name": "podbrief",
+  "version": "1.0.0",
+  "description": "A SaaS app for generating podcast interview briefs using AI",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["podcast", "ai", "brief", "interview", "saas"],
+  "author": "PodBrief Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
