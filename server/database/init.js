@@ -49,6 +49,28 @@ function initDatabase() {
           return;
         }
 
+        // Add interview_style column if it doesn't exist (migration)
+        db.all("PRAGMA table_info(guests)", (err, rows) => {
+          if (err) {
+            console.error('Error checking table schema:', err.message);
+            reject(err);
+            return;
+          }
+          
+          // Check if interview_style column exists
+          const hasInterviewStyle = rows.some(row => row.name === 'interview_style');
+          if (!hasInterviewStyle) {
+            db.run('ALTER TABLE guests ADD COLUMN interview_style TEXT DEFAULT "Professional"', (err) => {
+              if (err) {
+                console.error('Error adding interview_style column:', err.message);
+                reject(err);
+                return;
+              }
+              console.log('Added interview_style column to guests table');
+            });
+          }
+        });
+
         // Create Briefs table
         const createBriefsTable = `
           CREATE TABLE IF NOT EXISTS briefs (

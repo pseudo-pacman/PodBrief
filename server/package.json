@@ -18,6 +18,7 @@
     "openai": "^4.20.1",
     "puppeteer": "^24.11.2",
     "sqlite3": "^5.1.6",
+    "youtube-transcript": "^1.2.1",
     "youtube-transcript-api": "^3.0.6",
     "yt-transcript": "^0.0.2"
   },
