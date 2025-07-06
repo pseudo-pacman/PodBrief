@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 
 // Google Fonts import (Inter)
 const fontLink = (
@@ -104,6 +105,38 @@ export default function LandingPage() {
     <>
       {fontLink}
       <div className="font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+        {/* Navigation */}
+        <nav className="absolute top-0 left-0 right-0 z-20 px-6 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="text-white font-bold text-xl">PodBrief</div>
+            <div className="flex items-center gap-4">
+              <SignedIn>
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8"
+                    }
+                  }}
+                />
+                <Link
+                  to="/app"
+                  className="px-4 py-2 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 transition"
+                >
+                  Dashboard
+                </Link>
+              </SignedIn>
+              <SignedOut>
+                <Link
+                  to="/sign-in"
+                  className="px-4 py-2 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 transition"
+                >
+                  Sign In
+                </Link>
+              </SignedOut>
+            </div>
+          </div>
+        </nav>
+
         {/* Hero Section */}
         <header>
           <div
@@ -121,14 +154,26 @@ export default function LandingPage() {
               <p className="text-lg md:text-xl font-medium mb-8 max-w-xl drop-shadow">
                 Save time prepping for your guests with AI-powered interview briefs.
               </p>
-              <Link
-                to="/app"
-                className="inline-block px-8 py-4 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-white transition"
-                tabIndex={0}
-                aria-label="Get Started Free"
-              >
-                Get Started Free
-              </Link>
+              <SignedIn>
+                <Link
+                  to="/app"
+                  className="inline-block px-8 py-4 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-white transition"
+                  tabIndex={0}
+                  aria-label="Go to Dashboard"
+                >
+                  Go to Dashboard
+                </Link>
+              </SignedIn>
+              <SignedOut>
+                <Link
+                  to="/sign-in"
+                  className="inline-block px-8 py-4 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-white transition"
+                  tabIndex={0}
+                  aria-label="Get Started Free"
+                >
+                  Get Started Free
+                </Link>
+              </SignedOut>
             </div>
             {/* Right: Illustration */}
             <div className="w-full md:w-1/2 flex justify-center mt-12 md:mt-0">
@@ -222,16 +267,32 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <button
-                    className={`w-full py-3 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${
-                      tier.highlight
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                    }`}
-                    aria-label={tier.button}
-                  >
-                    {tier.button}
-                  </button>
+                  <SignedIn>
+                    <Link
+                      to="/app"
+                      className={`w-full py-3 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 transition block text-center ${
+                        tier.highlight
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      }`}
+                      aria-label={tier.button}
+                    >
+                      {tier.button}
+                    </Link>
+                  </SignedIn>
+                  <SignedOut>
+                    <Link
+                      to="/sign-in"
+                      className={`w-full py-3 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 transition block text-center ${
+                        tier.highlight
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      }`}
+                      aria-label={tier.button}
+                    >
+                      {tier.button}
+                    </Link>
+                  </SignedOut>
                   {tier.highlight && (
                     <div className="mt-3 text-xs text-blue-600 font-semibold uppercase tracking-wide">
                       Recommended
