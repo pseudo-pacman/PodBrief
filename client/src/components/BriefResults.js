@@ -1,10 +1,25 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Copy, Check, User, MessageSquare, Play, Square, ExternalLink, Calendar, FileDown, Loader2 } from 'lucide-react';
+import { Copy, Check, User, MessageSquare, Play, Square, ExternalLink, Calendar, FileDown, Loader2, RefreshCw, FlaskConical, Edit2, Save, X } from 'lucide-react';
 import { exportBriefAsPDF } from '../utils/pdfExport';
+
+const TONE_OPTIONS = [
+  { value: 'personal', label: 'Personal' },
+  { value: 'deeper', label: 'Deeper' },
+  { value: 'provocative', label: 'Provocative' },
+  { value: 'funny', label: 'Funny' },
+  { value: 'bold', label: 'Bold' },
+];
 
 const BriefResults = ({ brief, onCopy, copiedSection }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [questions, setQuestions] = useState(brief.questions);
+  const [loadingIndex, setLoadingIndex] = useState(null);
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const [refineTone, setRefineTone] = useState('personal');
+  const [showToneDropdown, setShowToneDropdown] = useState(null);
+
   const sections = [
     {
       id: 'bio',
@@ -73,6 +88,79 @@ const BriefResults = ({ brief, onCopy, copiedSection }) => {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // AI Question Assistant handlers
+  const handleRegenerate = async (index) => {
+    setLoadingIndex(index);
+    setShowToneDropdown(null);
+    try {
+      const res = await fetch('/api/assist-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: brief.guestTopic || brief.topic || '',
+          originalQuestion: questions[index],
+          mode: 'regenerate'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.question) {
+        setQuestions(qs => qs.map((q, i) => i === index ? data.question : q));
+        toast.success('Question updated!');
+      } else {
+        throw new Error(data.error || 'Failed to regenerate question');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to regenerate question');
+    } finally {
+      setLoadingIndex(null);
+    }
+  };
+
+  const handleRefine = async (index) => {
+    setLoadingIndex(index);
+    setShowToneDropdown(null);
+    try {
+      const res = await fetch('/api/assist-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: brief.guestTopic || brief.topic || '',
+          originalQuestion: questions[index],
+          mode: 'refine',
+          tone: refineTone
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.question) {
+        setQuestions(qs => qs.map((q, i) => i === index ? data.question : q));
+        toast.success('Question updated!');
+      } else {
+        throw new Error(data.error || 'Failed to refine question');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to refine question');
+    } finally {
+      setLoadingIndex(null);
+    }
+  };
+
+  const handleEdit = (index) => {
+    setEditIndex(index);
+    setEditValue(questions[index]);
+    setShowToneDropdown(null);
+  };
+
+  const handleSaveEdit = (index) => {
+    setQuestions(qs => qs.map((q, i) => i === index ? editValue : q));
+    setEditIndex(null);
+    toast.success('Question updated!');
+  };
+
+  const handleCancelEdit = () => {
+    setEditIndex(null);
+    setEditValue('');
   };
 
   return (
@@ -152,14 +240,76 @@ const BriefResults = ({ brief, onCopy, copiedSection }) => {
               <div className={`p-6 bg-gradient-to-r ${section.gradient}`}>
                 {section.isList ? (
                   <div className="space-y-4">
-                    {section.content.map((question, index) => (
-                      <div key={index} className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    {questions.map((question, index) => (
+                      <div key={index} className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100 items-start group transition">
+                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm mt-1">
                           {index + 1}
                         </div>
-                        <p className="text-gray-800 leading-relaxed font-medium">
-                          {question}
-                        </p>
+                        <div className="flex-1">
+                          {editIndex === index ? (
+                            <div className="flex flex-col gap-2">
+                              <textarea
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-800 text-base"
+                                value={editValue}
+                                onChange={e => setEditValue(e.target.value)}
+                                rows={2}
+                                autoFocus
+                              />
+                              <div className="flex gap-2">
+                                <button onClick={() => handleSaveEdit(index)} className="px-3 py-1 bg-green-600 text-white rounded-lg flex items-center gap-1 text-sm hover:bg-green-700"><Save className="w-4 h-4" />Save</button>
+                                <button onClick={handleCancelEdit} className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg flex items-center gap-1 text-sm hover:bg-gray-300"><X className="w-4 h-4" />Cancel</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col gap-1">
+                              <p className={`text-gray-800 leading-relaxed font-medium transition-colors duration-200 ${loadingIndex === index ? 'opacity-60' : ''}`}>{question}</p>
+                              <div className="flex gap-2 mt-2">
+                                <button
+                                  onClick={() => handleRegenerate(index)}
+                                  disabled={loadingIndex === index}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition disabled:opacity-50"
+                                  title="Regenerate"
+                                >
+                                  {loadingIndex === index ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                                  Regenerate
+                                </button>
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setShowToneDropdown(showToneDropdown === index ? null : index)}
+                                    disabled={loadingIndex === index}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-yellow-50 hover:bg-yellow-100 text-yellow-800 rounded-lg border border-yellow-200 transition disabled:opacity-50"
+                                    title="Refine"
+                                  >
+                                    <FlaskConical className="w-4 h-4" />
+                                    Refine
+                                  </button>
+                                  {showToneDropdown === index && (
+                                    <div className="absolute left-0 mt-2 z-10 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-col gap-1 w-40">
+                                      {TONE_OPTIONS.map(opt => (
+                                        <button
+                                          key={opt.value}
+                                          onClick={() => { setRefineTone(opt.value); handleRefine(index); }}
+                                          className={`text-left px-2 py-1 rounded hover:bg-blue-50 text-sm ${refineTone === opt.value ? 'bg-blue-100 font-semibold' : ''}`}
+                                        >
+                                          {opt.label}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => handleEdit(index)}
+                                  disabled={loadingIndex === index}
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition disabled:opacity-50"
+                                  title="Edit"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                  Edit
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, User, Link, MessageSquare, Mic, Globe, Video } from 'lucide-react';
+import { Sparkles, User, Link, MessageSquare, Mic, Globe, Video, Loader2, Search } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const GuestForm = ({ onSubmit, isLoading }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const GuestForm = ({ onSubmit, isLoading }) => {
     bioUrl: '',
     interviewUrls: ''
   });
+  const [enriching, setEnriching] = useState(false);
 
   const interviewStyles = [
     { value: 'Professional', label: 'Professional', description: 'Formal and business-like' },
@@ -26,22 +28,59 @@ const GuestForm = ({ onSubmit, isLoading }) => {
     }));
   };
 
+  // Enrich Info Handler
+  const handleEnrich = async (e) => {
+    e.preventDefault();
+    setEnriching(true);
+    try {
+      const interviewsArr = formData.interviewUrls
+        .split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0);
+      const res = await fetch('/api/enrich-guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          linkedin: formData.bioUrl,
+          website: formData.link,
+          interviews: interviewsArr
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.enrichment) {
+        setFormData(prev => ({
+          ...prev,
+          name: data.enrichment.name || prev.name,
+          topic: (data.enrichment.topics && data.enrichment.topics.length > 0) ? data.enrichment.topics.join(', ') : prev.topic,
+          // Optionally, you could add a bio field to the form and autofill it here
+        }));
+        toast.success('Guest info enriched successfully!');
+      } else {
+        throw new Error(data.error || 'Failed to enrich guest info');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to enrich guest info');
+    } finally {
+      setEnriching(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     // Convert interview URLs string to array
     const interviewUrlsArray = formData.interviewUrls
       .split('\n')
       .map(url => url.trim())
       .filter(url => url.length > 0);
-    
     const submitData = {
       ...formData,
       interviewUrls: interviewUrlsArray
     };
-    
     onSubmit(submitData);
   };
+
+  // Enable enrich if at least one URL is filled
+  const canEnrich = !!(formData.bioUrl.trim() || formData.link.trim() || formData.interviewUrls.trim());
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8" aria-label="Guest Information Form" role="form">
@@ -160,6 +199,31 @@ const GuestForm = ({ onSubmit, isLoading }) => {
           </select>
         </div>
       </div>
+
+      {/* Enrich Info Button */}
+      <button
+        type="button"
+        onClick={handleEnrich}
+        disabled={!canEnrich || enriching}
+        className={`w-full py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 mb-2 transition-all duration-200
+          ${!canEnrich || enriching ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'}`}
+        aria-label="Enrich Guest Info from URLs"
+      >
+        {enriching ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Enriching...
+          </>
+        ) : (
+          <>
+            <Search className="w-5 h-5" />
+            Enrich Info from URLs
+          </>
+        )}
+      </button>
+      <p className="text-xs text-gray-500 mb-4 text-center">
+        <span className="font-medium text-gray-700">What does this do?</span> This will automatically extract and summarize the guest's bio, title, company, and key topics from the provided LinkedIn, website, and interview URLs using AI.
+      </p>
 
       <button
         type="submit"
