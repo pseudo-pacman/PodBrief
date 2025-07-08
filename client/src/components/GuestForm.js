@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Sparkles, User, Link, MessageSquare, Mic, Globe, Video, Loader2, Search } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Card from './Card';
 
-const GuestForm = ({ onSubmit, isLoading }) => {
+const GuestForm = ({ onSubmit, isLoading, layout }) => {
   const [formData, setFormData] = useState({
     name: '',
     link: '',
@@ -17,42 +18,33 @@ const GuestForm = ({ onSubmit, isLoading }) => {
     { value: 'Professional', label: 'Professional', description: 'Formal and business-like' },
     { value: 'Casual', label: 'Casual', description: 'Relaxed and conversational' },
     { value: 'Entertainer', label: 'Entertainer', description: 'Fun and engaging' },
-    { value: 'Thought Leader', label: 'Thought Leader', description: 'Intellectual and insightful' }
+    { value: 'Challenger', label: 'Challenger', description: 'Provocative and bold' },
   ];
 
+  const canEnrich = formData.bioUrl || formData.link || formData.interviewUrls;
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Enrich Info Handler
-  const handleEnrich = async (e) => {
-    e.preventDefault();
+  const handleEnrich = async () => {
     setEnriching(true);
     try {
-      const interviewsArr = formData.interviewUrls
-        .split('\n')
-        .map(url => url.trim())
-        .filter(url => url.length > 0);
       const res = await fetch('/api/enrich-guest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           linkedin: formData.bioUrl,
           website: formData.link,
-          interviews: interviewsArr
+          interviews: formData.interviewUrls.split(',').map(s => s.trim()).filter(Boolean)
         })
       });
       const data = await res.json();
       if (data.success && data.enrichment) {
-        setFormData(prev => ({
-          ...prev,
-          name: data.enrichment.name || prev.name,
-          topic: (data.enrichment.topics && data.enrichment.topics.length > 0) ? data.enrichment.topics.join(', ') : prev.topic,
-          // Optionally, you could add a bio field to the form and autofill it here
+        setFormData(f => ({
+          ...f,
+          name: data.enrichment.name || f.name,
+          topic: data.enrichment.topics?.[0] || f.topic,
         }));
         toast.success('Guest info enriched successfully!');
       } else {
@@ -65,189 +57,149 @@ const GuestForm = ({ onSubmit, isLoading }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Convert interview URLs string to array
-    const interviewUrlsArray = formData.interviewUrls
-      .split('\n')
-      .map(url => url.trim())
-      .filter(url => url.length > 0);
-    const submitData = {
-      ...formData,
-      interviewUrls: interviewUrlsArray
-    };
-    onSubmit(submitData);
-  };
-
-  // Enable enrich if at least one URL is filled
-  const canEnrich = !!(formData.bioUrl.trim() || formData.link.trim() || formData.interviewUrls.trim());
+  // Use grid layout if layout prop is 'grid'
+  const isGrid = layout === 'grid';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8" aria-label="Guest Information Form" role="form">
-      <div className="space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <User className="w-4 h-4 text-blue-600" aria-hidden="true" />
-            Guest Name *
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="e.g., Jordan Harbinger"
-            required
-            aria-required="true"
-            aria-label="Guest Name"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
-          />
+    <div className="w-full animate-fade-in">
+      <Card label={<><User className="w-5 h-5 text-brand" /> <span>🎤 Guest Profile</span></>} className="rounded-2xl border bg-white dark:bg-[#1A1A1A] shadow-md mb-0 p-0 transition-colors duration-300">
+        <div className="px-6 pt-6 pb-2">
+          <h1 className="text-2xl font-semibold font-sans text-primary dark:text-primary-dark mb-1 flex items-center gap-2">
+            <User className="w-7 h-7 text-brand" /> Guest Profile
+          </h1>
+          <p className="text-base text-muted-foreground mb-2">Add or enrich a podcast guest. Fields marked <span className='text-red-500'>*</span> are required.</p>
         </div>
-
-        <div>
-          <label htmlFor="bioUrl" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-green-600" aria-hidden="true" />
-            LinkedIn or Guest Bio URL (optional)
-          </label>
-          <input
-            type="url"
-            id="bioUrl"
-            name="bioUrl"
-            value={formData.bioUrl}
-            onChange={handleChange}
-            placeholder="e.g., https://linkedin.com/in/jordanharbinger or https://jordanharbinger.com"
-            aria-label="LinkedIn or Guest Bio URL"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
-          />
-          <p className="text-xs text-gray-500 mt-2">
-            We'll extract and summarize their professional background to enhance the brief.
-          </p>
-        </div>
-
-        <div>
-          <label htmlFor="interviewUrls" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Video className="w-4 h-4 text-purple-600" aria-hidden="true" />
-            Previous Interviews (YouTube, Podcast, or Blog URLs)
-          </label>
-          <textarea
-            id="interviewUrls"
-            name="interviewUrls"
-            value={formData.interviewUrls}
-            onChange={handleChange}
-            placeholder="https://youtube.com/watch?v=example1&#10;https://podcast.com/episode/example2&#10;https://blog.com/interview/example3"
-            rows={4}
-            aria-label="Previous Interviews URLs"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white resize-none"
-          />
-          <p className="text-xs text-gray-500 mt-2">
-            Enter one URL per line. We'll analyze transcripts and content to identify key themes and insights.
-          </p>
-        </div>
-
-        <div>
-          <label htmlFor="link" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Link className="w-4 h-4 text-indigo-600" aria-hidden="true" />
-            Guest Website or Social Media (optional)
-          </label>
-          <input
-            type="url"
-            id="link"
-            name="link"
-            value={formData.link}
-            onChange={handleChange}
-            placeholder="e.g., https://jordanharbinger.com"
-            aria-label="Guest Website or Social Media"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="topic" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-orange-600" aria-hidden="true" />
-            Discussion Topic (optional)
-          </label>
-          <input
-            type="text"
-            id="topic"
-            name="topic"
-            value={formData.topic}
-            onChange={handleChange}
-            placeholder="e.g., Communication skills and networking"
-            aria-label="Discussion Topic"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="interviewStyle" className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Mic className="w-4 h-4 text-red-600" aria-hidden="true" />
-            Interview Style
-          </label>
-          <select
-            id="interviewStyle"
-            name="interviewStyle"
-            value={formData.interviewStyle}
-            onChange={handleChange}
-            aria-label="Interview Style"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+        <hr className="my-2 border-muted-20" />
+        <form onSubmit={e => { e.preventDefault(); onSubmit(formData); }} className={`flex flex-col gap-y-6 px-6 pb-6 ${isGrid ? '' : ''}`}>
+          <div className={isGrid ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'flex flex-col gap-y-6'}>
+            {/* Name */}
+            <div className="flex flex-col space-y-2">
+              <label htmlFor="name" className="text-base font-medium text-muted-foreground">Name <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                name="name"
+                id="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-base bg-background dark:bg-[#232323] focus:ring-2 focus:ring-brand focus:outline-none text-primary dark:text-primary-dark transition-colors duration-200"
+                placeholder="Guest full name"
+                autoComplete="off"
+              />
+            </div>
+            {/* Website */}
+            <div className="flex flex-col space-y-2">
+              <label htmlFor="link" className="text-base font-medium text-muted-foreground">Personal Website</label>
+              <input
+                type="url"
+                name="link"
+                id="link"
+                value={formData.link}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-base bg-background dark:bg-[#232323] focus:ring-2 focus:ring-brand focus:outline-none text-primary dark:text-primary-dark transition-colors duration-200"
+                placeholder="https://guest.com"
+                autoComplete="off"
+              />
+            </div>
+            {/* LinkedIn */}
+            <div className="flex flex-col space-y-2">
+              <label htmlFor="bioUrl" className="text-base font-medium text-muted-foreground">LinkedIn Profile</label>
+              <input
+                type="url"
+                name="bioUrl"
+                id="bioUrl"
+                value={formData.bioUrl}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-base bg-background dark:bg-[#232323] focus:ring-2 focus:ring-brand focus:outline-none text-primary dark:text-primary-dark transition-colors duration-200"
+                placeholder="https://linkedin.com/in/guest"
+                autoComplete="off"
+              />
+            </div>
+            {/* Previous Interviews */}
+            <div className="flex flex-col space-y-2">
+              <label htmlFor="interviewUrls" className="text-base font-medium text-muted-foreground">Previous Interviews (comma separated)</label>
+              <input
+                type="text"
+                name="interviewUrls"
+                id="interviewUrls"
+                value={formData.interviewUrls}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-base bg-background dark:bg-[#232323] focus:ring-2 focus:ring-brand focus:outline-none text-primary dark:text-primary-dark transition-colors duration-200"
+                placeholder="https://youtube.com/..., https://podcast.com/..."
+                autoComplete="off"
+              />
+            </div>
+            {/* Topic */}
+            <div className="flex flex-col space-y-2">
+              <label htmlFor="topic" className="text-base font-medium text-muted-foreground">Discussion Topic <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                name="topic"
+                id="topic"
+                value={formData.topic}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-base bg-background dark:bg-[#232323] focus:ring-2 focus:ring-brand focus:outline-none text-primary dark:text-primary-dark transition-colors duration-200"
+                placeholder="AI and the future of work"
+                autoComplete="off"
+              />
+            </div>
+            {/* Interview Style */}
+            <div className="flex flex-col space-y-2">
+              <label htmlFor="interviewStyle" className="text-base font-medium text-muted-foreground">Interview Style</label>
+              <select
+                name="interviewStyle"
+                id="interviewStyle"
+                value={formData.interviewStyle}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-base bg-background dark:bg-[#232323] focus:ring-2 focus:ring-brand focus:outline-none text-primary dark:text-primary-dark transition-colors duration-200"
+              >
+                {interviewStyles.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <p className="text-sm text-muted-foreground mt-1">{interviewStyles.find(s => s.value === formData.interviewStyle)?.description}</p>
+            </div>
+          </div>
+          <hr className="my-4 border-muted-20" />
+          {/* Enrich Button */}
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleEnrich}
+              disabled={!canEnrich || enriching}
+              className={`w-full py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200
+                ${!canEnrich || enriching ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'}`}
+              aria-label="Enrich Guest Info from URLs"
+            >
+              {enriching ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Enriching...
+                </>
+              ) : (
+                <>
+                  <Search className="w-5 h-5" />
+                  Enrich Info from URLs
+                </>
+              )}
+            </button>
+            <p className="text-xs text-muted-foreground text-center mb-2">
+              <span className="font-medium">What does this do?</span> This will automatically extract and summarize the guest's bio, title, company, and key topics from the provided LinkedIn, website, and interview URLs using AI.
+            </p>
+          </div>
+          {/* Generate Brief Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 bg-brand text-white hover:bg-brand-dark transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {interviewStyles.map(style => (
-              <option key={style.value} value={style.value}>
-                {style.label} - {style.description}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Enrich Info Button */}
-      <button
-        type="button"
-        onClick={handleEnrich}
-        disabled={!canEnrich || enriching}
-        className={`w-full py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 mb-2 transition-all duration-200
-          ${!canEnrich || enriching ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'}`}
-        aria-label="Enrich Guest Info from URLs"
-      >
-        {enriching ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Enriching...
-          </>
-        ) : (
-          <>
-            <Search className="w-5 h-5" />
-            Enrich Info from URLs
-          </>
-        )}
-      </button>
-      <p className="text-xs text-gray-500 mb-4 text-center">
-        <span className="font-medium text-gray-700">What does this do?</span> This will automatically extract and summarize the guest's bio, title, company, and key topics from the provided LinkedIn, website, and interview URLs using AI.
-      </p>
-
-      <button
-        type="submit"
-        disabled={isLoading || !formData.name.trim()}
-        className={`w-full py-4 px-6 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 ${
-          isLoading || !formData.name.trim()
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-        }`}
-        aria-label="Generate Brief"
-      >
-        {isLoading ? (
-          <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            Generating Brief...
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-5 h-5" />
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
             Generate Brief
-          </>
-        )}
-      </button>
-    </form>
+          </button>
+        </form>
+      </Card>
+    </div>
   );
 };
 

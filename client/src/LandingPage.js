@@ -104,7 +104,7 @@ export default function LandingPage() {
   return (
     <>
       {fontLink}
-      <div className="font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div className="font-sans bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
         {/* Navigation */}
         <nav className="absolute top-0 left-0 right-0 z-20 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -140,11 +140,8 @@ export default function LandingPage() {
         {/* Hero Section */}
         <header>
           <div
-            className="relative w-full min-h-[70vh] flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-16"
-            style={{
-              background:
-                "linear-gradient(90deg, #2563eb 0%, #7c3aed 100%)",
-            }}
+            className="relative w-full min-h-[70vh] flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-16 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-zinc-900 dark:to-zinc-800"
+            style={{}}
           >
             {/* Left: Text */}
             <div className="w-full md:w-1/2 text-white z-10">
@@ -205,7 +202,7 @@ export default function LandingPage() {
           >
             <h2
               id="features-title"
-              className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-900"
+              className="text-2xl md:text-3xl font-bold text-center mb-12 text-gray-900 dark:text-zinc-100"
             >
               Why PodBrief?
             </h2>
@@ -213,13 +210,13 @@ export default function LandingPage() {
               {features.map((f, i) => (
                 <div
                   key={f.title}
-                  className="flex flex-col items-center bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-2xl transition"
+                  className="flex flex-col items-center bg-white dark:bg-zinc-900 rounded-2xl shadow-lg p-8 text-center hover:shadow-2xl transition"
                   tabIndex={0}
                   aria-label={f.title}
                 >
                   <div className="mb-4">{f.icon}</div>
-                  <h3 className="text-lg font-bold mb-2 text-gray-900">{f.title}</h3>
-                  <p className="text-gray-600">{f.desc}</p>
+                  <h3 className="text-lg font-bold mb-2 text-gray-900 dark:text-zinc-100">{f.title}</h3>
+                  <p className="text-gray-600 dark:text-zinc-300">{f.desc}</p>
                 </div>
               ))}
             </div>

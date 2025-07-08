@@ -118,19 +118,19 @@ function MainApp() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-200 ${accessibility.largeFont ? 'text-xl' : ''} ${accessibility.highContrast ? 'high-contrast' : ''}`}
+      className={`min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-900 dark:to-zinc-950 transition-all duration-200 ${accessibility.largeFont ? 'text-xl' : ''} ${accessibility.highContrast ? 'high-contrast' : ''}`}
     >
       <Header />
       <main className="container mx-auto px-4 py-12 max-w-7xl">
         <div className="flex justify-center mb-12">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-gray-100 dark:border-zinc-800 p-2">
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode('form')}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
                   viewMode === 'form'
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800'
                 }`}
               >
                 <Mic className="w-5 h-5" />
@@ -141,7 +141,7 @@ function MainApp() {
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
                   viewMode === 'list'
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800'
                 }`}
               >
                 <List className="w-5 h-5" />
@@ -151,51 +151,114 @@ function MainApp() {
           </div>
         </div>
         {viewMode === 'form' && (
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg mb-6">
-              <Mic className="w-8 h-8 text-white" />
+          <>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg mb-6">
+                <Mic className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-5xl font-bold text-gray-900 dark:text-zinc-100 mb-6 tracking-tight">
+                Generate Professional
+                <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Podcast Briefs
+                </span>
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-zinc-300 max-w-3xl mx-auto leading-relaxed">
+                Create engaging interview briefs with AI-powered content generation. 
+                Get professional bios, questions, and scripts in seconds.
+              </p>
             </div>
-            <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-              Generate Professional
-              <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Podcast Briefs
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Create engaging interview briefs with AI-powered content generation. 
-              Get professional bios, questions, and scripts in seconds.
-            </p>
-          </div>
-        )}
-        {viewMode === 'form' && (
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sticky top-8">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl">
-                    <Users className="w-6 h-6 text-blue-600" />
+            <div className="grid md:grid-cols-2 gap-8 items-start mb-4">
+              <div className="max-w-4xl w-full">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-100 dark:border-zinc-800 p-3">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl">
+                      <Users className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">Guest Information</h2>
+                      <p className="text-gray-500 dark:text-zinc-300 text-sm">Enter your guest details</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Guest Information</h2>
-                    <p className="text-gray-500 text-sm">Enter your guest details</p>
+                  <GuestForm onSubmit={generateBrief} isLoading={isLoading} layout="grid" />
+                </div>
+              </div>
+              <div className="max-w-2xl w-full flex flex-col gap-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-100 dark:border-zinc-800 p-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl">
+                      <Zap className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">What You'll Get</h3>
+                      <p className="text-gray-500 dark:text-zinc-300 text-sm">Professional content for your podcast</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="flex items-start gap-4 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:bg-zinc-800 dark:bg-none rounded-xl">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Professional Bio</h4>
+                        <p className="text-sm text-gray-600 dark:text-zinc-200">2-3 sentence introduction for your guest</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:bg-zinc-800 dark:bg-none rounded-xl">
+                      <div className="w-3 h-3 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">5 Interview Questions</h4>
+                        <p className="text-sm text-gray-600 dark:text-zinc-200">Engaging questions tailored to your guest</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:bg-zinc-800 dark:bg-none rounded-xl">
+                      <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Intro Script</h4>
+                        <p className="text-sm text-gray-600 dark:text-zinc-200">~30-second introduction for your host</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 p-2 bg-gradient-to-r from-orange-50 to-red-50 dark:bg-zinc-800 dark:bg-none rounded-xl">
+                      <div className="w-3 h-3 bg-orange-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Outro Script</h4>
+                        <p className="text-sm text-gray-600 dark:text-zinc-200">~15-second closing for your host</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <GuestForm onSubmit={generateBrief} isLoading={isLoading} />
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-4 text-white">
+                  <div className="flex items-center gap-3 mb-2">
+                    <FileText className="w-6 h-6" />
+                    <h3 className="text-2xl font-bold">Powered by AI</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold mb-1">GPT-3.5</div>
+                      <div className="text-blue-100 text-sm">AI Model</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold mb-1">5</div>
+                      <div className="text-blue-100 text-sm">Questions</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold mb-1">45s</div>
+                      <div className="text-blue-100 text-sm">Total Script</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="lg:col-span-2 space-y-8">
-              {isLoading && (
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl mb-6">
+            {isLoading && (
+              <div className="max-w-2xl mx-auto w-full mb-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-100 dark:border-zinc-800 p-5 text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl mb-4">
                     <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     Generating Your Brief
                   </h3>
                   <p className="text-gray-600 text-lg max-w-md mx-auto">
                     Our AI is crafting a professional podcast brief for your guest...
                   </p>
-                  <div className="mt-6 flex justify-center">
+                  <div className="mt-4 flex justify-center">
                     <div className="flex space-x-2">
                       <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
                       <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -203,10 +266,12 @@ function MainApp() {
                     </div>
                   </div>
                 </div>
-              )}
-              {brief && (
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-8 py-6 border-b border-gray-100">
+              </div>
+            )}
+            {brief && (
+              <div className="max-w-2xl mx-auto w-full mb-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-100 dark:border-zinc-800 overflow-hidden">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-5 py-3 border-b border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg">
                         <Sparkles className="w-5 h-5 text-green-600" />
@@ -217,7 +282,7 @@ function MainApp() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-8">
+                  <div className="p-5">
                     <BriefResults 
                       brief={brief} 
                       onCopy={copyToClipboard}
@@ -225,70 +290,9 @@ function MainApp() {
                     />
                   </div>
                 </div>
-              )}
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl">
-                    <Zap className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900">What You'll Get</h3>
-                    <p className="text-gray-500 text-sm">Professional content for your podcast</p>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Professional Bio</h4>
-                      <p className="text-sm text-gray-600">2-3 sentence introduction for your guest</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
-                    <div className="w-3 h-3 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">5 Interview Questions</h4>
-                      <p className="text-sm text-gray-600">Engaging questions tailored to your guest</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
-                    <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Intro Script</h4>
-                      <p className="text-sm text-gray-600">~30-second introduction for your host</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl">
-                    <div className="w-3 h-3 bg-orange-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Outro Script</h4>
-                      <p className="text-sm text-gray-600">~15-second closing for your host</p>
-                    </div>
-                  </div>
-                </div>
               </div>
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <FileText className="w-6 h-6" />
-                  <h3 className="text-2xl font-bold">Powered by AI</h3>
-                </div>
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold mb-1">GPT-3.5</div>
-                    <div className="text-blue-100 text-sm">AI Model</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold mb-1">5</div>
-                    <div className="text-blue-100 text-sm">Questions</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold mb-1">45s</div>
-                    <div className="text-blue-100 text-sm">Total Script</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
         {viewMode === 'list' && (
           <BriefsList 
