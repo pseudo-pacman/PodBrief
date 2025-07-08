@@ -12,6 +12,7 @@ dotenv.config();
 const generateRoutes = require('./routes/generate');
 const briefsRoutes = require('./routes/briefs');
 const contextualizeRoutes = require('./routes/contextualize');
+const showNotesRoutes = require('./routes/showNotes');
 
 // Import database initialization
 const { initDatabase } = require('./database/init');
@@ -48,6 +49,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/generate', generateRoutes);
 app.use('/api/briefs', briefsRoutes);
 app.use('/api/contextualizeGuest', contextualizeRoutes);
+app.use('/api/generate-show-notes', showNotesRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
